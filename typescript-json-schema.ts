@@ -1615,6 +1615,47 @@ export function buildGenerator(
             const relativePath = path.relative(workingDir, sourceFile.fileName);
 
             function inspect(node: ts.Node, tc: ts.TypeChecker) {
+                if (node.kind === ts.SyntaxKind.FunctionDeclaration) {
+                    const funSymbol: ts.Symbol = (<any>node).symbol;
+                    const funcName = funSymbol.getName();
+
+                    // Just inspect our PoC function for now
+                    if (funcName === 'getWeather') {
+                        const funNodeType = tc.getTypeAtLocation(node);
+                        const sigs = funNodeType.getCallSignatures();
+                        if (sigs.length !== 1) {
+                            throw new Error(`Function overloads are not supported`)
+                        }
+                        
+                        const sig = sigs[0];
+                        const params = sig.getParameters();
+                        if (params.length !== 1) {
+                            throw new Error(`Only 1 parameter is supported - received ${params.length}`);
+                        }
+
+                        const param = params[0];
+                        const declarations = param.getDeclarations();
+                        if (!declarations) {
+                            throw new Error(`Expected to be able to resolve declarations`);
+                        }
+
+                        if (declarations.length !== 1) {
+                            throw new Error(`Only 1 declaration is supported - received ${declarations.length}`);
+                        }
+                        
+                        const declaration = declarations[0];
+                        const nodeType = tc.getTypeAtLocation(declaration);
+                        const fullyQualifiedName = tc.getFullyQualifiedName(param);
+                        const typeName = fullyQualifiedName.replace(/".*"\./, "");
+                        const name = `GetWeatherProps`;
+
+                        symbols.push({ name, typeName, fullyQualifiedName, symbol: param });
+                        if (!userSymbols[name]) {
+                            allSymbols[name] = nodeType;
+                        }
+                    }
+                }
+
                 if (
                     node.kind === ts.SyntaxKind.ClassDeclaration ||
                     node.kind === ts.SyntaxKind.InterfaceDeclaration ||

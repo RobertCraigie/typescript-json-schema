@@ -68,6 +68,7 @@
     "debug": "node --inspect=19248 --inspect-brk -r ts-node/register typescript-json-schema-cli.ts",
     "docs": "./update-docs.js",
     "run": "ts-node typescript-json-schema-cli.ts",
+    "cli": "ts-node typescript-json-schema-cli.ts",
     "build": "tsc",
     "lint": "tslint --project tsconfig.json -c tslint.json --exclude '**/*.d.ts'",
     "style": "prettier --write *.js *.ts test/*.ts",
